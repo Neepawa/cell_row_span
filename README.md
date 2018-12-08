@@ -128,8 +128,8 @@ a backslash ("\\") to avoid problems:
 Usage
 -----
 
-See [Extensions](index.md) for general extension usage. Use `cell_row_span` as
-the name of the extension. You must include the `tables` extension *before*
+See [Extensions][extensions] for general extension usage. Use `cell_row_span`
+as the name of the extension. You must include the `tables` extension *before*
 this one, or this extension will not be run.
 
 This extension does not accept any special configuration options.
@@ -141,3 +141,5 @@ This extension works with Python Markdown versions 2.6 and 3 under Python 2
 and Python 3.
 
 License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
+
+[extensions]: https://python-markdown.github.io/extensions/
