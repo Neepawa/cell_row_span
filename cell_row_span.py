@@ -253,7 +253,7 @@ class CellRowSpanTreeProcessor(Treeprocessor):
             tr_index = 0
             for tr in tbody:
                 # Check for adjacent columns
-                if tr_index + 2 in rows and self.RE_adjacent_bars.search(rows[tr_index+2]):
+                if tr_index + 2 < len(rows) and self.RE_adjacent_bars.search(rows[tr_index+2]):
                     self._update_colspan_attrib(rows[tr_index+2], t_index, tr_index, tr, td_remove)
                 # Check for spanned rows
                 td_index = 0
