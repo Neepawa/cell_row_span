@@ -138,10 +138,10 @@ class CellRowSpanExtension(Extension):
     def extendMarkdown(self, md, md_globals):
         """ Add our block and tree processors """
         if 'table' in md.parser.blockprocessors:
-           md.parser.blockprocessors.add('cell_row_span',
-             CellRowSpanBlockProcessor(self, md.parser), '<table')
-           md.treeprocessors.add('cell_row_span',
-             CellRowSpanTreeProcessor(self), '<inline')
+            md.parser.blockprocessors.register(
+                CellRowSpanBlockProcessor(self, md.parser), 'cell_row_span', 25)
+            md.treeprocessors.add(
+                CellRowSpanTreeProcessor(self), 'cell_row_span', 26)
 
 
 class CellRowSpanBlockProcessor(BlockProcessor):
