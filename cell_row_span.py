@@ -139,7 +139,7 @@ class CellRowSpanExtension(Extension):
         """ Add our block and tree processors """
         if 'table' in md.parser.blockprocessors:
             md.parser.blockprocessors.register(
-                CellRowSpanBlockProcessor(self, md.parser), 'cell_row_span', 25)
+                CellRowSpanBlockProcessor(self, md.parser), 'cell_row_span', 30)
             md.treeprocessors.register(
                 CellRowSpanTreeProcessor(self), 'cell_row_span', 26)
 
