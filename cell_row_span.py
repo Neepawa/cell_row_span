@@ -135,7 +135,7 @@ class CellRowSpanExtension(Extension):
     # the extension itself.
     table_blocks = []
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         """ Add our block and tree processors """
         if 'table' in md.parser.blockprocessors:
             md.parser.blockprocessors.register(
