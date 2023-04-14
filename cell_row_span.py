@@ -123,7 +123,6 @@ License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
 from markdown.extensions import Extension
 from markdown.blockprocessors import BlockProcessor
 from markdown.treeprocessors import Treeprocessor
-from markdown.util import etree
 import re
 
 
@@ -135,13 +134,13 @@ class CellRowSpanExtension(Extension):
     # the extension itself.
     table_blocks = []
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         """ Add our block and tree processors """
         if 'table' in md.parser.blockprocessors:
-           md.parser.blockprocessors.add('cell_row_span',
-             CellRowSpanBlockProcessor(self, md.parser), '<table')
-           md.treeprocessors.add('cell_row_span',
-             CellRowSpanTreeProcessor(self), '<inline')
+            md.parser.blockprocessors.register(
+                CellRowSpanBlockProcessor(self, md.parser), 'cell_row_span', 76)
+            md.treeprocessors.register(
+                CellRowSpanTreeProcessor(self), 'cell_row_span', 26)
 
 
 class CellRowSpanBlockProcessor(BlockProcessor):
@@ -167,7 +166,8 @@ class CellRowSpanTreeProcessor(Treeprocessor):
     """ Add cell and row spans to table as needed """
 
     RE_adjacent_bars = re.compile(r'\|(~~)?\|')
-    RE_remove_lead_pipe = re.compile(r'^ *\|')  # ... Colonel Mustard in the Library? ;)
+    # ... Colonel Mustard in the Library? ;)
+    RE_remove_lead_pipe = re.compile(r'^ *\|')
     RE_row_span_marker = re.compile(r'^_[_^= ]*_$')
     RE_valign_top = re.compile(r'\^')
     RE_valign_bottom = re.compile(r'=')
@@ -179,23 +179,26 @@ class CellRowSpanTreeProcessor(Treeprocessor):
 
     def _update_colspan_attrib(self, text, t_index, tr_index, tr, td_remove):
         """ Update 'colspan' attributes in 'td' entries """
-        text = self.RE_remove_lead_pipe.sub('', text)   # Remove leading '|' from text
+        # Remove leading '|' from text
+        text = self.RE_remove_lead_pipe.sub('', text)
         td_index = 0
         td_last_active_index = 0
 
         for c in text.split('|'):
             if len(c) == 0 or c == '~~':
                 try:
-                    td = tr[td_last_active_index]           #  Update 'colspan' on previous cell
+                    # Update 'colspan' on previous cell
+                    td = tr[td_last_active_index]
                 except IndexError:
                     row_content = ''
                     for i in range(len(tr)):
                         x = tr[i].text
-                        row_content += "  Cell %i: %s\n" % (i+1, x if x else 'Empty')
+                        row_content += "  Cell %i: %s\n" % (
+                            i+1, x if x else 'Empty')
                     raise IndexError(
-                        'Cannot merge cell beyond end of row '
-                        "(one too many '|' characters in row?)\n"
-                        'Check row %i of table %i in your document. Row contents:\n%s' % (
+                        'Cannot merge cell beyond end of the row '
+                        "(one too many '|' characters in the row?)\n"
+                        "Check row %i of table %i in your document. Row's contents:\n%s" % (
                             tr_index+1, t_index, row_content
                         )
                     )
@@ -204,7 +207,7 @@ class CellRowSpanTreeProcessor(Treeprocessor):
                     if 'colspan' in td.keys():
                         span = int(td.get('colspan'))
                     td.set('colspan', str(span+1))
-                    td_remove.append( (tr, tr[td_index]) )
+                    td_remove.append((tr, tr[td_index]))
             else:
                 td_last_active_index = td_index
             td_index += 1
@@ -223,26 +226,25 @@ class CellRowSpanTreeProcessor(Treeprocessor):
                     'marker\nCheck row %i, column %i in table %i in your '
                     'document' % (tr_index+1, td_index+1, self.table_count)
                 )
-            v_align='bottom'
+            v_align = 'bottom'
 
         # Starting from the current row, go up the rows and delete columns
         # until we hit a non-empty column (or the start of the table)
         for row_num in reversed(range(tr_index+1)):
             td = tbody[row_num][td_index]
             if row_num == tr_index or self.RE_empty_cell.match(td.text):
-                td_remove.append( (tbody[row_num], td) )
+                td_remove.append((tbody[row_num], td))
             else:
                 break
 
         # Update the colspan and valign attributes on the row
-        td = tbody[row_num][td_index] if row_num >=0 else tbody[0][td_index]
+        td = tbody[row_num][td_index] if row_num >= 0 else tbody[0][td_index]
         td.set('rowspan', str(tr_index-row_num+1))
-
 
     def run(self, root):
         # Process all the tables in the ElementTree
         t_index = 0
-        for table in root.findall('.//table'):
+        for table in root.iter('table'):
             # Retrieve the block saved by the BlockProcessor
             rows = self.table_blocks[t_index].split('\n')
             t_index += 1
@@ -253,13 +255,16 @@ class CellRowSpanTreeProcessor(Treeprocessor):
             tr_index = 0
             for tr in tbody:
                 # Check for adjacent columns
-                if tr_index + 2 in rows and self.RE_adjacent_bars.search(rows[tr_index+2]):
-                    self._update_colspan_attrib(rows[tr_index+2], t_index, tr_index, tr, td_remove)
+                if (tr_index + 2 < len(rows) and
+                        self.RE_adjacent_bars.search(rows[tr_index+2])):
+                    self._update_colspan_attrib(
+                        rows[tr_index+2], t_index, tr_index, tr, td_remove)
                 # Check for spanned rows
                 td_index = 0
                 for td in tr:
-                    if self.RE_row_span_marker.match(td.text):
-                        self._update_rowspan_attrib(tbody, tr_index, td_index, td_remove)
+                    if td.text and self.RE_row_span_marker.match(td.text):
+                        self._update_rowspan_attrib(
+                            tbody, tr_index, td_index, td_remove)
                     td_index += 1
                 tr_index += 1
 
@@ -267,6 +272,7 @@ class CellRowSpanTreeProcessor(Treeprocessor):
             for tr, td in td_remove:
                 if td in tr:
                     tr.remove(td)
+
 
 def makeExtension(*args, **kwargs):
     return CellRowSpanExtension(*args, **kwargs)
