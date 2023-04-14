@@ -1,10 +1,18 @@
 Table Cell and Row Span
 =======================
 
+NOTE: This is a fork of an excellent idea implemented by @Neepawa, however
+the upstream seems to be abandoned for a while, so I collected different
+patches across all forks and also updated the extension to work with the
+latest version of [Python-Markdown][markdown].  I plan to maintain this
+version (and push changes to upstream) as long as I am running my personal
+blog on [Pelican][pelican], which heavily relies on Python-Markdown.
+
 Summary
 -------
 
-Adds spanning for rows and cells in tables.
+A Python-Markdown extension to add the `colspan` and `rowspan` support for rows
+and cells in tables.
 
 Syntax
 ------
@@ -118,7 +126,7 @@ different, change `~~` to another value in the following line in the code:
     RE_empty_cell = re.compile(r'\s*(~~)?\s*$')
 
 Keep in mind that many characters have special meaning in regular expressions.
-If you use any of the following characters in the expression, preceed them with
+If you use any of the following characters in the expression, precede them with
 a backslash ("\\") to avoid problems:
 
 ~~~ text
@@ -143,3 +151,5 @@ and Python 3.
 License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
 
 [extensions]: https://python-markdown.github.io/extensions/
+[markdown]: https://github.com/Python-Markdown/markdown
+[pelican]: https://github.com/getpelican/pelican
